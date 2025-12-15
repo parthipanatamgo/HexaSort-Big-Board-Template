@@ -89,8 +89,31 @@ document.addEventListener(
 );
 //                          Game Code
 const baseColor = 0xb7b5b8;
+
+function greenComponentHack(array) {
+  const matches = {};
+
+  for (let i = 0; i < array.length; i++) {
+    const green = getGreenComponentFromHex(array[i]);
+    console.log(green);
+    if (!matches[green]) {
+      matches[green] = [];
+    }
+
+    matches[green].push(array[i]);
+  }
+
+  console.log(matches);
+  return matches;
+}
+
+function getGreenComponentFromHex(hex) {
+  return (hex >> 8) & 0xff;
+}
+
 const hexagonColors = Theme.Tile.colors;
 
+greenComponentHack(hexagonColors);
 
 const _hex_array_color = [
   [1, 3, 5, 0, 2, 4],
