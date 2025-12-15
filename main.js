@@ -90,21 +90,51 @@ document.addEventListener(
 //                          Game Code
 const baseColor = 0xb7b5b8;
 
+
 function greenComponentHack(array) {
   const matches = {};
+  let colors = [];
 
   for (let i = 0; i < array.length; i++) {
     const green = getGreenComponentFromHex(array[i]);
+    
     console.log(green);
     if (!matches[green]) {
       matches[green] = [];
+      colors.push(green);
     }
 
-    matches[green].push(array[i]);
+    matches[green].push(i);
   }
 
   console.log(matches);
-  return matches;
+
+  
+  for(let i of colors){
+    if(matches[i].length > 1){
+      for(let j=1; j<matches[i].length; j++){
+        
+        let temp = addGreen(hexagonColors[matches[i][j]], -1*j);
+        console.log(temp);
+        
+        if(temp === hexagonColors[matches[i][j]]){
+          temp = addGreen(hexagonColors[matches[i]], 1*j);
+        }
+        
+        hexagonColors[matches[i][j]] = temp;
+      }
+    }
+  }
+}
+
+function addGreen(hex, delta) {
+  const r = (hex >> 16) & 0xff;
+  const g = (hex >> 8) & 0xff;
+  const b = hex & 0xff;
+
+  const newG = Math.min(255, Math.max(0, g + delta));
+
+  return (r << 16) | (newG << 8) | b;
 }
 
 function getGreenComponentFromHex(hex) {

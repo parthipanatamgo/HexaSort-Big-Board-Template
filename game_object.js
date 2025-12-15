@@ -63,7 +63,7 @@ window.game_object = {
       },
     },
 
-      Custom: {
+    Custom: {
       name: "Default Theme",
 
       Tile: {
@@ -85,6 +85,7 @@ window.game_object = {
         color: 0xdddddd,
       },
     },
+    
   },
 
   Audio: {
