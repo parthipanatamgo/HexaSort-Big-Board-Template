@@ -1,0 +1,243 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Hexa Sort</title>
+        <style>
+            @import url("https://fonts.googleapis.com/css2?family=Fredoka+One&display=swap");
+            body {
+                margin: 0;
+                overflow: hidden;
+            }
+
+            #threejs-canvas {
+                width: 100vw;
+                height: 100vh;
+                overflow: hidden;
+                touch-action: none;
+            }
+            #text-on-top {
+                display: flex;
+                position: absolute;
+                justify-content: center;
+                align-items: center;
+                flex-direction: column;
+                width: 100vw;
+                background-color: white;
+                z-index: 2;
+                padding-bottom: 4%;
+                padding-top: 4%;
+            }
+
+            h1 {
+                color: white;
+                text-stroke: 0.5px black;
+                -webkit-text-stroke: 0.5px black;
+                font-family: "Fredoka One";
+                font-size: clamp(22px, 2vw, 128px);
+                padding: 0 10px;
+                width: 90%;
+                text-align: center;
+                justify-self: center;
+                white-space: nowrap; /* Prevents text wrapping */
+                overflow: hidden; /* Hides overflow if text is too long */
+            }
+            .highlight-pink {
+                color: deeppink;
+            }
+            .textures {
+                display: none;
+            }
+
+            .hidden {
+                display: none !important;
+            }
+
+
+            .hover {
+                transform-origin: center center;
+                animation: float 3s ease-in-out infinite;
+            }
+            @keyframes float {
+                0% {
+                    transform: translateY(0px) rotate(0deg);
+                }
+                30% {
+                    transform: translateY(-1vh) rotate(-5deg);
+                }
+                70% {
+                    transform: translateY(-1vh) rotate(5deg);
+                }
+                100% {
+                    transform: translateY(0px) rotate(0deg);
+                }
+            }
+            /* Play button Animations*/
+            /* Playful Jump Animation for Play Button */
+            .play-button {
+                cursor: pointer;
+                transition: transform 0.2s ease;
+                animation: playfulBounce 2s ease-in-out infinite;
+                transform-origin: center bottom;
+            }
+
+            @keyframes playfulBounce {
+                0%,
+                20%,
+                50%,
+                80%,
+                100% {
+                    transform: translateY(0) scale(1);
+                }
+                10% {
+                    transform: translateY(-8px) scale(1.02);
+                }
+                30% {
+                    transform: translateY(-15px) scale(1.05);
+                }
+                40% {
+                    transform: translateY(-20px) scale(1.08) rotate(-2deg);
+                }
+                60% {
+                    transform: translateY(-10px) scale(1.03) rotate(1deg);
+                }
+                70% {
+                    transform: translateY(-5px) scale(1.01);
+                }
+            }
+
+            /* Click/Active effect */
+            .play-button:active {
+                animation: playfulClick 0.3s ease-out;
+            }
+
+            @keyframes playfulClick {
+                0% {
+                    transform: scale(1.15);
+                }
+                50% {
+                    transform: scale(0.95) rotate(3deg);
+                }
+                100% {
+                    transform: scale(1.1) rotate(-1deg);
+                }
+            }
+
+            /* Extra playful effects */
+            .play-button::before {
+                content: "";
+                position: absolute;
+                top: -10px;
+                left: 50%;
+                transform: translateX(-50%);
+                width: 20px;
+                height: 20px;
+                background: radial-gradient(
+                    circle,
+                    rgba(255, 255, 255, 0.8) 0%,
+                    transparent 70%
+                );
+                border-radius: 50%;
+                opacity: 0;
+                animation: sparkle 2s ease-in-out infinite;
+            }
+
+            @keyframes sparkle {
+                0%,
+                80%,
+                100% {
+                    opacity: 0;
+                    transform: translateX(-50%) scale(0.5);
+                }
+                40% {
+                    opacity: 1;
+                    transform: translateX(-50%) scale(1.2);
+                }
+            }
+
+            /* Breathing effect when not hovered */
+            .play-button:not(:hover) {
+                animation:
+                    playfulBounce 2s ease-in-out infinite,
+                    breathe 3s ease-in-out infinite;
+            }
+
+            @keyframes breathe {
+                0%,
+                100% {
+                    filter: brightness(1);
+                }
+                50% {
+                    filter: brightness(1.1);
+                }
+            }
+
+
+
+            #CTA {
+                display: none;
+                position: fixed;
+                justify-items: center;
+                align-items: center;
+                width: 100vw;
+                height: 100vh;
+                backdrop-filter: blur(5px) brightness(0.5);
+                left: 0;
+                right: 0;
+                top: 0;
+                flex-direction: column;
+                z-index: 4;
+                padding: 20vh 0vw 0vw 0vh;
+            }
+
+
+            #Icon{
+                height: 30%;
+            }
+
+            #Text{
+                height: 10%;
+            }
+
+
+            #play-button {
+                height: 10%;
+                animation: zoomPulse 2s ease-in-out infinite;
+            }
+
+            @keyframes zoomPulse {
+
+                0%,
+                100% {
+                    transform: scale(1);
+                }
+
+                50% {
+                    transform: scale(1.1);
+                }
+            }
+        </style>
+    </head>
+    <body>
+        <img src="cartoon_thunder.png" class="textures" id="cartoon_thunder" />
+        <audio id="drop_sound" src="Audio/drop_sound.mp3"></audio>
+        <audio id="flip_sound" src="Audio/flip_sound.mp3"></audio>
+        <audio id="delete_sound" src="Audio/delete_sound.mp3"></audio>
+        <audio id="music" src="Audio/backgroundMusic.mp3"></audio>
+        <div id="text-on-top">
+            <h1 id="title-text">
+                Your girlfriend likes
+                <span id="pink-text" class="highlight-pink">this game</span>
+            </h1>
+        </div>
+        <!-- <div id="call-to-action" class="hidden">
+            <img class="cta-elements hover" src="cta/Icon.png" />
+            <img class="cta-elements hover" src="cta/Text.png" />
+            <img id="play-button" class="cta-elements" src="cta/Button.png" />
+        </div> -->
+        <canvas id="threejs-canvas"></canvas>
+        <script type="module" src="essentials.js"></script>
+        <script type="module" src="/main.js"></script>
+    </body>
+</html>

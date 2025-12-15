@@ -1,0 +1,11 @@
+{
+  "devDependencies": {
+    "vite": "^6.3.5",
+    "vite-plugin-singlefile": "^2.2.0"
+  },
+  "dependencies": {
+    "gsap": "^3.13.0",
+    "howler": "^2.2.4",
+    "three": "^0.176.0"
+  }
+}
