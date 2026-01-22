@@ -4,11 +4,11 @@ import { Howl } from "howler";
 import { loadGLB } from "./essentials";
 import Stats from "three/examples/jsm/libs/stats.module.js";
 import "./game_object.js";
+import { CountPlane } from "./ScorePlane.js";
 
 // const stats = new Stats();
 // stats.showPanel(0); // 0: fps, 1: ms, 2: mb, 3+: custom
 // document.body.appendChild(stats.dom);
-
 
 let cta = window.game_object.Cta;
 let cta_screen = null;
@@ -19,15 +19,12 @@ let ctaScreen = null;
 let textOnTop = document.getElementById("text-on-top");
 let play_button = null;
 
-
 /*!{{CTA_DEFINITION}}*/
 createCTA();
-
 
 const GameElements = window.game_object.GameElements;
 const Theme = window.game_object.GameThemes[game_object.GameThemes.selected];
 const Audio = window.game_object.Audio;
-
 
 const HexaModelBase64 = GameElements.Tile.model;
 //const particlesModelBase64 = GameElements.ParticlesMesh.model;
@@ -47,21 +44,21 @@ const music_src = document.getElementById("music");
 
 const flip_sound = new Howl({
   src: [Audio.flipSound.data],
-  format: ['mp3'],
+  format: ["mp3"],
   volume: 1.0,
   loop: false,
 });
 
 const drop_sound = new Howl({
   src: [Audio.dropSound.data],
-  format: ['mp3'],
+  format: ["mp3"],
   volume: 1.0,
   loop: false,
 });
 
 const music = new Howl({
   src: [Audio.music.data],
-  format: ['mp3'],
+  format: ["mp3"],
   volume: 1.0,
   loop: false,
 });
@@ -90,15 +87,13 @@ document.addEventListener(
 //                          Game Code
 const baseColor = 0xb7b5b8;
 
-
 function greenComponentHack(array) {
   const matches = {};
   let colors = [];
 
   for (let i = 0; i < array.length; i++) {
     const green = getGreenComponentFromHex(array[i]);
-    
-    console.log(green);
+
     if (!matches[green]) {
       matches[green] = [];
       colors.push(green);
@@ -107,20 +102,16 @@ function greenComponentHack(array) {
     matches[green].push(i);
   }
 
-  console.log(matches);
-
-  
-  for(let i of colors){
-    if(matches[i].length > 1){
-      for(let j=1; j<matches[i].length; j++){
-        
-        let temp = addGreen(hexagonColors[matches[i][j]], -1*j);
+  for (let i of colors) {
+    if (matches[i].length > 1) {
+      for (let j = 1; j < matches[i].length; j++) {
+        let temp = addGreen(hexagonColors[matches[i][j]], -1 * j);
         console.log(temp);
-        
-        if(temp === hexagonColors[matches[i][j]]){
-          temp = addGreen(hexagonColors[matches[i]], 1*j);
+
+        if (temp === hexagonColors[matches[i][j]]) {
+          temp = addGreen(hexagonColors[matches[i]], 1 * j);
         }
-        
+
         hexagonColors[matches[i][j]] = temp;
       }
     }
@@ -212,7 +203,6 @@ const title_text = document.getElementById("title-text");
 title_text.childNodes[0].textContent = window.game_object.Ui.TitleText.white;
 pinkText.textContent = window.game_object.Ui.TitleText.pink;
 
-
 camera.position.z = 10;
 camera.position.y = 15;
 
@@ -303,6 +293,11 @@ const baseMaterial = new THREE.MeshLambertMaterial({
 renderer.setSize(window.innerWidth, window.innerHeight);
 renderer.setAnimationLoop(animate);
 //console.log(window.innerWidth);
+let spacing = window.game_object.GameProperties.Spacing.amount;
+
+if (spacing < 1) {
+  spacing = 1;
+}
 
 window.addEventListener("resize", onWindowResize, false);
 function onWindowResize() {
@@ -320,19 +315,21 @@ let mesh_length;
 let mesh_length_by2;
 let mesh_breadth_by2;
 let selectableDeckPos = [
-  new THREE.Vector3(-3, 0, 13),
+  new THREE.Vector3(-3 / spacing, 0, 13),
   new THREE.Vector3(0, 0, 13),
-  new THREE.Vector3(3, 0, 13),
+  new THREE.Vector3(3 / spacing, 0, 13),
 ];
 let cubeGeometry;
 let cube;
 
 loadGLB(HexaModelBase64).then(({ geometry, mesh }) => {
   boundingBox = new THREE.Box3().setFromObject(mesh);
+
   mesh_height = boundingBox.max.z - boundingBox.min.z;
   mesh_height = mesh_height * GameElements.Tile.scale.z;
   mesh_breadth = boundingBox.max.y - boundingBox.min.y;
   mesh_length = boundingBox.max.x - boundingBox.min.x;
+
   mesh_length_by2 = mesh_length / 2 - 0.2;
   mesh_breadth_by2 = mesh_breadth / 2 - 0.2;
   model_mesh = geometry;
@@ -443,9 +440,9 @@ const hand = new THREE.Mesh(planeGeometry, handMaterial);
 hand.castShadow = true;
 scene.add(hand);
 hand.lookAt(camera.position);
-hand.rotateX(-Math.PI/5);
+hand.rotateX(-Math.PI / 5);
 hand.position.copy(
-  selectableDeckPos[1].clone().add(new THREE.Vector3(0.8, 0.5, 0.5)),
+  selectableDeckPos[1].clone().add(new THREE.Vector3(0.8 , 4, 0.5 + 2)),
 );
 
 const hand_timeline = gsap.timeline({ repeat: -1, yoyo: true });
@@ -453,20 +450,20 @@ const hand_timeline = gsap.timeline({ repeat: -1, yoyo: true });
 let first_time = true;
 hand_timeline.to(hand.position, {
   x: 0.5,
-  y: 1,
-  z: 9,
+  y: 4,
+  z: 11,
   duration: 2,
   ease: "power1.inOut",
   onComplete: () => {
     //if(!first_time){
-      hand.rotateX(Math.PI/5);
+    hand.rotateX(Math.PI / 5);
     // }else{
     //   first_time = false;
     // }
     //handMaterial.map.offset.x = 0;
   },
   onReverseComplete: () => {
-    hand.rotateX(-Math.PI/5);
+    hand.rotateX(-Math.PI / 5);
     // When returning to original position
     //handMaterial.map.offset.x = 0.5;
   },
@@ -559,6 +556,7 @@ function deckGenerator(
   instancedMesh.castShadow = true;
   instancedMesh.receiveShadow = true;
   instancedMesh.position.set(position.x, position.y, position.z);
+
   return instancedMesh;
 }
 
@@ -639,7 +637,15 @@ function deckGeneratorCA(
 }
 
 let dummy = new THREE.Object3D();
-const tilescale = GameElements.Tile.scale;
+
+const scale = GameElements.Tile.scale;
+
+const tilescale = new THREE.Vector3(
+  scale.x / spacing,
+  scale.y / spacing,
+  scale.z,
+);
+
 dummy.scale.set(tilescale.x, tilescale.y, tilescale.z);
 
 function createInstancedMesh(
@@ -664,8 +670,15 @@ function createInstancedMesh(
   }
   mesh.instanceMatrix.needsUpdate = true;
   scene.add(mesh);
+  if(count > 0){
+    const countUI = new CountPlane({number: count});
+    mesh.add(countUI.mesh);
+    countUI.mesh.position.set(0,(count-1)*mesh_height + 0.25, 0.2);
+  }
   return mesh;
 }
+
+
 
 function createBase(geometry, dimX, dimY) {
   let offsetX;
@@ -679,6 +692,10 @@ function createBase(geometry, dimX, dimY) {
 
   //instancedMesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage); // Optional for performance if matrices will change
 
+  const dummy = new THREE.Object3D();
+  const baseScale = window.game_object.GameElements.Tile.scale;
+  dummy.scale.set(baseScale.x, baseScale.y, baseScale.z);
+
   for (let indY = -dimY / 2; indY < dimY / 2; indY++) {
     if (indY % 2 === 0) {
       offsetX = 0;
@@ -687,7 +704,6 @@ function createBase(geometry, dimX, dimY) {
     }
     const posy = -mesh_height / 2 - 0.001;
     for (let indX = -dimX / 2; indX < dimX / 2; indX++) {
-      const dummy = new THREE.Object3D();
       dummy.position.x = offsetX + indX * spacingX;
       dummy.position.y = posy;
       dummy.position.z = indY * spacingY;
@@ -734,27 +750,21 @@ function createHexArray(geometry, dimX, dimY, maxHeight) {
       if (indY === 8 && indX === 0) {
         deck = deckGeneratorUniform(
           geometry,
-          new THREE.Vector3(
-            X,
-            0,
-            Z,
-          ),
+          new THREE.Vector3(X, 0, Z),
           0,
           0,
-          _hex_array_color[indY + dimY / 2][indX + dimX / 2]%hexagonColors.length,
+          _hex_array_color[indY + dimY / 2][indX + dimX / 2] %
+            hexagonColors.length,
           mesh_height,
         );
       } else {
         deck = deckGeneratorUniform(
           geometry,
-          new THREE.Vector3(
-            X,
-            0,
-            Z,
-          ),
+          new THREE.Vector3(X, 0, Z),
           randBelow10(),
           0,
-          _hex_array_color[indY + dimY / 2][indX + dimX / 2]%hexagonColors.length,
+          _hex_array_color[indY + dimY / 2][indX + dimX / 2] %
+            hexagonColors.length,
           mesh_height,
         );
       }
@@ -770,7 +780,7 @@ function createHexArray(geometry, dimX, dimY, maxHeight) {
 
 let first_tap = true;
 function onPointerDown(event) {
-  if(first_tap){
+  if (first_tap) {
     first_tap = false;
     setTimeout(() => {
       showCTA();
@@ -1302,6 +1312,8 @@ function stagingAMatch(fromId, toId) {
   stack_anim_playing = true;
   fromDeck = hex_ref_array[fromId[0]][fromId[1]];
   toDeck = hex_ref_array[toId[0]][toId[1]];
+  
+
   matchedUpto = fromDeck.count - 1;
   matchColor = getColorOfIndex(fromDeck, fromDeck.count - 1);
   pieceTimeArray = [];
@@ -1375,7 +1387,7 @@ function playMatchAnimation(curTime, deltaTime) {
     if (curTime - matchAnimataionHelper > 50) {
       pieceTimeArray.push(0);
       matchedUpto--;
-      //flip_sound.play();
+      // flip_sound.play();
       matchAnimataionHelper = curTime;
     }
   }
@@ -1723,7 +1735,6 @@ function checkForMatchesEveryWhere() {
   }
 }
 
-
 function showCTA() {
   //textOnTop.classList.add("hidden");
   //ctaScreen.classList.remove("hidden");
@@ -1756,9 +1767,7 @@ function stopRendering() {
   }
 }
 
-
-
-function createCTA(){
+function createCTA() {
   console.log("Create CTA called");
   // Create the parent div
   const ctaDiv = document.createElement("div");
@@ -1787,12 +1796,10 @@ function createCTA(){
   // Add the whole div to the document (e.g., inside body)
   document.body.appendChild(ctaDiv);
 
-
   const play_button = document.getElementById("play-button");
   play_button.addEventListener("click", window.openStoreLink);
 
   cta_screen = document.getElementById("CTA");
   ctaScreen = document.getElementById("CTA");
   //textOnTop = document.getElementById("text-on-top");
-
 }
