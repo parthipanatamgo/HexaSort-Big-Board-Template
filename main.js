@@ -19,6 +19,83 @@ let ctaScreen = null;
 let textOnTop = document.getElementById("text-on-top");
 let play_button = null;
 
+
+var mraid = window.mraid || window.top.mraid;
+
+window.initializeAD = () => {
+  if (!mraid) {
+    console.log("MRAID not detected");
+    return;
+  }
+
+  console.log("MRAID version:", mraid.getVersion());
+
+  function onMRaidReady() {
+    console.log("MRAID is ready");
+
+    window.getState();
+
+    const expandBtn = document.getElementById("expandButton");
+    if (expandBtn) {
+      expandBtn.addEventListener("click", () => {
+        if (mraid.getState() === "default") {
+          mraid.expand();
+        } else {
+          alert("Ad would expand here in MRAID environment");
+        }
+      });
+    }
+
+    mraid.addEventListener("stateChange", (state) => {
+      // console.log("State changed to:", state);
+    });
+
+    mraid.addEventListener("sizeChange", (w, h) => {
+      // console.log("New size:", w, h);
+    });
+  }
+
+  // Add listener AFTER defining the function
+  mraid.addEventListener("ready", onMRaidReady);
+};
+
+window.getState = () => {
+  if (mraid) {
+    const state = mraid.getState();
+    console.log("Current state:", state);
+    return state;
+  }
+};
+
+window.openStoreLink = () => {
+  const device = detectMobileOS();
+  const link = device === "iOS" ? window.game_object.Cta.appleStoreLink : window.game_object.Cta.playStoreLink;
+
+  if (window.mraid) {
+    window.mraid.open(link);
+  } else if (window.top && window.top.mraid) {
+    window.top.mraid.open(link);
+  } else {
+    window.open(link, "_blank");
+  }
+};
+
+function detectMobileOS() {
+  const userAgent = navigator.userAgent || window.opera;
+
+  // iOS detection
+  if (/iPad|iPhone|iPod/.test(userAgent) && !window.MSStream) {
+    return "iOS";
+  }
+
+  // Android detection
+  if (/android/i.test(userAgent)) {
+    return "Android";
+  }
+
+  return "Other";
+}
+
 /*!{{CTA_DEFINITION}}*/
 createCTA();
 
@@ -209,7 +286,8 @@ camera.position.y = 15;
 camera.lookAt(new THREE.Vector3(0, -3, 0));
 
 camera.position.z = 13;
-//camera.position.x = -0.8;
+
+camera.position.x = -0.8;
 const raycaster = new THREE.Raycaster();
 const pointer = new THREE.Vector2();
 let mouseDown = false;
@@ -279,8 +357,8 @@ const renderer = new THREE.WebGLRenderer({
 //const controls = new OrbitControls(camera, renderer.domElement);
 const hexMaterial = new THREE.MeshPhongMaterial({
   color: 0xffffff, // Diffuse color (green)
-  specular: 0x454545, // Specular color (gray)
-  shininess: 60, // Shininess (higher = more focused highlight)
+  specular: 0x999999, // Specular color (gray)
+  shininess: 20, // Shininess (higher = more focused highlight)
   side: THREE.FrontSide,
   flatShading: false, // Enable smooth shading (default)
   emissive: 0x000000, // Self-illumination color
@@ -475,8 +553,9 @@ hand_timeline.to(hand.position, {
 const ambientLight = new THREE.AmbientLight(0xffffff, 1.5);
 scene.add(ambientLight);
 const directionalLight = new THREE.DirectionalLight(0xffffff, 2);
-directionalLight.position.set(3, 10, 3);
-directionalLight.target.position.set(-1, 0, 0);
+directionalLight.position.set(-2, 10, 2);
+directionalLight.target.position.set(1, 0, 0);
+scene.add(directionalLight.target);
 //directionalLight.castShadow = true; // Enable shadow casting
 
 // Configure shadow properties for better quality
@@ -785,6 +864,7 @@ function createHexArray(geometry, dimX, dimY, maxHeight) {
 let first_tap = true;
 function onPointerDown(event) {
   if (first_tap) {
+    console.log(window.game_object.Cta.endTime);
     first_tap = false;
     setTimeout(() => {
       showCTA();
@@ -886,8 +966,21 @@ function onPointerUp(event) {
 function onTouchStart(event) {
   //event.preventDefault(); // Prevent default touch behaviors like scrolling
 
-  if (hand.visible) {
+    if (first_tap) {
+    console.log(window.game_object.Cta.endTime);
+    first_tap = false;
+    setTimeout(() => {
+      showCTA();
+    }, window.game_object.Cta.endTime * 1000);
+  }
+  if (audioUnintialized) {
+    if (audioContext.state === "suspended") {
+      audioContext.resume();
+      music.play();
+      audioUnintialized = false;
+    }
     hand.visible = false;
+
     //music.play();
   }
 
@@ -1543,16 +1636,19 @@ function destroyDeck(_time) {
           delete_sound.play();
         } else {
           isdestroyingDeck = false;
+          createLabel(destroyingDeck)
           checkForMatchesEveryWhere();
         }
       } else {
         isdestroyingDeck = false;
+        createLabel(destroyingDeck)
         checkForMatchesEveryWhere();
       }
     } else {
       if (destroyingDeck) {
         if (destroyingDeck.count <= 0) {
           isdestroyingDeck = false;
+          createLabel(destroyingDeck)
           checkForMatchesEveryWhere();
           odds = 0;
           return;
@@ -1566,6 +1662,14 @@ function destroyDeck(_time) {
       }
     }
   }
+}
+
+function createLabel(mesh){
+    const countUI = new CountPlane({number: mesh.count});
+    mesh.add(countUI.mesh);
+    countUI.scene = mesh;
+    countUI.mesh.position.set(0,(mesh.count-1)*mesh_height + 0.25, 0.1);
+    countUI.mesh.is_plane = true;
 }
 
 function copyMatchedDeckData() {

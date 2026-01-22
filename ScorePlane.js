@@ -7,7 +7,7 @@ export class CountPlane {
     this.height = options.height || 1;
     this.canvasSize = options.canvasSize || 128;
     this.fontSize = options.fontSize || 120;
-    this.fontFamily = options.fontFamily || "Fredoka One";
+    this.fontFamily = options.fontFamily || "Lilita One";
     this.textColor = options.textColor || "#ffffff";
     this.backgroundColor = options.backgroundColor || "#00000000";
     this.borderColor = options.borderColor || "#00000000";
@@ -15,6 +15,17 @@ export class CountPlane {
 
     this.createCanvas();
     this.createMesh();
+    this.updateTexture();
+
+    this.init();
+  }
+
+  async loadFont() {
+    await document.fonts.load(`bold ${this.fontSize}px "${this.fontFamily}"`);
+  }
+
+  async init() {
+    await this.loadFont();
     this.updateTexture();
   }
 
