@@ -31,7 +31,7 @@ window.game_object = {
           0xffd91e, //Yellow
           0xee59ff, //Purple
           0x6ae1fa, //Light Blue
-          0xf6f4f7, //White
+          0x969497, //White
           0x575757, //Black
         ],
       },

@@ -7,7 +7,7 @@ export class CountPlane {
     this.height = options.height || 1;
     this.canvasSize = options.canvasSize || 128;
     this.fontSize = options.fontSize || 120;
-    this.fontFamily = options.fontFamily || "Arial";
+    this.fontFamily = options.fontFamily || "Fredoka One";
     this.textColor = options.textColor || "#ffffff";
     this.backgroundColor = options.backgroundColor || "#00000000";
     this.borderColor = options.borderColor || "#00000000";
@@ -34,6 +34,7 @@ export class CountPlane {
       transparent: true,
     });
     this.mesh = new THREE.Mesh(geometry, material);
+    this.mesh.object = this;
     this.mesh.rotateX(-Math.PI / 2);
   }
 
@@ -46,11 +47,6 @@ export class CountPlane {
     ctx.fillStyle = this.backgroundColor;
     ctx.fillRect(0, 0, w, h);
 
-    // Draw border
-    ctx.strokeStyle = this.borderColor;
-    ctx.lineWidth = 10;
-    ctx.strokeRect(10, 10, w - 20, h - 20);
-
     // Set font (before drawing)
     ctx.font = `bold ${this.fontSize}px ${this.fontFamily}`;
     ctx.textAlign = "center";
@@ -58,7 +54,7 @@ export class CountPlane {
 
     // Draw text outline
     ctx.strokeStyle = "#000000"; // Outline color (black)
-    ctx.lineWidth = 8; // Outline thickness
+    ctx.lineWidth = 0; // Outline thickness
     ctx.lineJoin = "round"; // Smooth corners
     ctx.strokeText(this.number.toString(), w / 2, h / 2);
 
@@ -98,11 +94,12 @@ export class CountPlane {
   }
 
   addToScene(scene) {
+    this.scene = scene;
     scene.add(this.mesh);
   }
 
-  removeFromScene(scene) {
-    scene.remove(this.mesh);
+  removeFromScene() {
+    this.scene.remove(this.mesh);
   }
 
   dispose() {

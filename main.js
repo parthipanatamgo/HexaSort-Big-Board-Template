@@ -207,7 +207,9 @@ camera.position.z = 10;
 camera.position.y = 15;
 
 camera.lookAt(new THREE.Vector3(0, -3, 0));
-camera.position.x = -0.8;
+
+camera.position.z = 13;
+//camera.position.x = -0.8;
 const raycaster = new THREE.Raycaster();
 const pointer = new THREE.Vector2();
 let mouseDown = false;
@@ -673,7 +675,9 @@ function createInstancedMesh(
   if(count > 0){
     const countUI = new CountPlane({number: count});
     mesh.add(countUI.mesh);
-    countUI.mesh.position.set(0,(count-1)*mesh_height + 0.25, 0.2);
+    countUI.scene = mesh;
+    countUI.mesh.position.set(0,(count-1)*mesh_height + 0.25, 0.1);
+    countUI.mesh.is_plane = true;
   }
   return mesh;
 }
@@ -805,6 +809,10 @@ function onPointerDown(event) {
   if (intersects.length > 0) {
     //console.log(intersects[0].point);
     selectedDeck = intersects[0].object;
+    if(selectedDeck.is_plane){
+      console.log("plane");
+      selectedDeck = selectedDeck.parent;
+    }
     selectedDeckPosBackup = { ...selectedDeck.position }; // Making a copy of the array
     intersects[0].object.position.setY(3);
     drop_sound.play();
@@ -895,8 +903,12 @@ function onTouchStart(event) {
 
   if (intersects.length > 0) {
     selectedDeck = intersects[0].object;
+    if(selectedDeck.is_plane){
+      console.log("plane");
+      selectedDeck = selectedDeck.parent;
+    }
     selectedDeckPosBackup = { ...selectedDeck.position }; // Making a copy of the array
-    intersects[0].object.position.setY(3);
+    selectedDeck.position.setY(3);
     drop_sound.play();
     hoverPos = intersects[0].point.clone();
   }
@@ -1313,6 +1325,9 @@ function stagingAMatch(fromId, toId) {
   fromDeck = hex_ref_array[fromId[0]][fromId[1]];
   toDeck = hex_ref_array[toId[0]][toId[1]];
   
+  //console.log(fromDeck);
+  fromDeck.children[0].object.delete();
+  toDeck.children[0].object.delete();
 
   matchedUpto = fromDeck.count - 1;
   matchColor = getColorOfIndex(fromDeck, fromDeck.count - 1);
@@ -1628,6 +1643,7 @@ function doesColorAppear10Times(mesh_instance) {
     if (color === getGreenComponentOfIndex(mesh_instance, i)) {
       count++;
       if (count >= 10) {
+        mesh_instance.children[0].object.delete();
         return true;
       }
     } else {
